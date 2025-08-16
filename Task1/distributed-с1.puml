@@ -1,0 +1,26 @@
+@startuml Agrotech Distributed System Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(operator, "Оператор", "Сотрудник на ферме")
+Person(analytic, "Аналитик", "Работа с BI-системой")
+
+System(cattleMonitoring, "Мониторинг скота", "Камеры + нейросетевая модель + уведомления")
+System(conditionsControlService, "Контроль условий хлева", "Климат, качество воды, управление кормушками и поилками")
+
+System(localService, "Сервис мониторинга", "Локальный сервис мониторинга")
+
+System(centralHub, "Центральный хаб", "Аналитика, данные, веб-интерфейс")
+
+Rel_D(cattleMonitoring, localService, "Передача данных (в т.ч. видео)", "AMQP (RTSP для видео)")
+Rel_D(conditionsControlService, localService, "Передача данных", "AMQP")
+Rel_U(localService, conditionsControlService, "Управление контроллерами", "Modbus TCP")
+
+Rel_D(localService, centralHub, "Передача метрик")
+Rel_U(centralHub, localService, "Синхронизация данных о сотрудниках", "AMQP")
+
+Rel_R(operator, localService, "Мониторинг скота")
+Rel_L(cattleMonitoring, operator, "Уведомления о происшествиях", "SMS")
+Rel_U(analytic, centralHub, "Анализирует данные")
+
+LAYOUT_WITH_LEGEND()
+@enduml
