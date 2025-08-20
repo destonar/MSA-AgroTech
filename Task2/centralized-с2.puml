@@ -2,11 +2,12 @@
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
 Person(operator, "Оператор", "Сотрудник на ферме")
-Person(analytic, "Аналитик", "Работа с BI-системой")
 
 System_Ext(cameras, "Fish-eye камеры")
 System_Ext(sensors, "Датчики в хлевах", "Климат, качество воды и т.п.")
 System_Ext(controllers, "Контролеры кормушек и поилок") 
+
+System(centralHub, "АгроПром Х - Цифровая платформа")
 
 System_Boundary(localService, "Система мониторинга скота") {
     Container(iot_шлюз, "IoT шлюз", "Node-RED (reused)", "Сбор данных")
@@ -20,55 +21,28 @@ System_Boundary(localService, "Система мониторинга скота"
     ContainerDb(fileStorage, "Файловое хранилище", "HDD")
 }
 
-System_Boundary(centralHub, "АгроПром Х - Цифровая платформа") {
-    Container(веб_портал, "Веб-портал", "React", "Управление хозяйством")
-    ContainerDb(erp, "ERP система (1С:Агро)", "1С", "Финансы, склад, кадры")
-    
-    Container(kafka, "Брокер сообщений", "Apache Kafka", "Шина данных")
+Rel_R(operator, webApp, "Использует")
 
-    Container_Boundary(данные, "Хранилища данных") {
-        ContainerDb(data_lake, "Data Lake", "MinIO", "Сырые данные (S3-совместимое)")
-        ContainerDb(dwh, "Data Warehouse", "ClickHouse", "Структурированные данные")
-    }
-    
-    Container(identity, "Сервис идентификации", "Keycloak", "Аутентифицирует и авторизует пользователей")
-
-    Container(bi, "BI система", "Power BI", "Отчеты и визуализация")
-    Container(аналитика, "Аналитический модуль", "Python+Spark", "Анализ эффективности")
-}
-
-Rel_U(operator, webApp, "Использует")
 Rel(webApp, api, "Отправляет запросы", "HTTP")
 Rel(api, tsdb, "Получает данные", "SQL")
 Rel(api, fileStorage, "Получает видео")
 
-Rel(identity, api, "Авторизует", "HTTP")
+Rel(centralHub, api, "Авторизует", "HTTP")
 
 Rel(iot_шлюз, fileStorage, "Сохранение видео")
+Rel(iot_шлюз, api, "Передача видеопотока", "RTSP")
 Rel(iot_шлюз, tsdb, "Сохранение данных", "SQL")
 Rel(mlAnalytics, iot_шлюз, "Ретрансляция видеопотока и данных", "RTSP/HTTP")
 
-Rel_L(mlAnalytics, smsGateway, "Отправка уведомлений")
+Rel_U(mlAnalytics, smsGateway, "Отправка уведомлений")
 
 Rel(cameras, mlAnalytics, "Трансляция видеопотока", "4G")
 Rel(sensors, iot_шлюз, "Сбор данных", "LoRaWAN")
-Rel_R(iot_шлюз, controllers, "Управление кормушками и поилками", "Modbus TCP")
+Rel(iot_шлюз, controllers, "Управление кормушками и поилками", "Modbus TCP")
 
-Rel(smsGateway, operator, "Уведомления о происшествиях", "SMS")
+Rel_L(smsGateway, operator, "Уведомления о происшествиях", "SMS")
 
-Rel(kafka, data_lake, "Сырые данные", "Kafka Connect+S3")
-Rel(kafka, dwh, "Трансформированные данные", "ETL+Airflow")
+Rel(iot_шлюз, centralHub, "Передача метрик", "Kafka Protocol")
 
-Rel(data_lake, аналитика, "Доступ к сырым данным", "Spark")
-Rel(dwh, аналитика, "Доступ к структурированным данным", "SQL")
-Rel(аналитика, bi, "Передает отчеты", "ODBC")
-Rel(аналитика, веб_портал, "Формирует рекомендации", "WebSocket")
-
-Rel(веб_портал, erp, "Синхронизация данных", "REST API")
-Rel(erp, dwh, "Бизнес-данные", "ETL")
-
-Rel(iot_шлюз, kafka, "Передача метрик", "Kafka Protocol")
-
-LAYOUT_LANDSCAPE()
 LAYOUT_WITH_LEGEND()
 @enduml 

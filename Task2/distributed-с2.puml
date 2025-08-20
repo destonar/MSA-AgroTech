@@ -1,0 +1,50 @@
+@startuml C2 Container Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(operator, "Оператор", "Сотрудник на ферме")
+
+System_Boundary(barnControl, "Контроль условий в хлеве") {
+    Container(sensors, "Датчики в хлевах", "Климат, качество воды, прочие условия")
+    Container(controllers, "Контролеры кормушек и поилок")
+    Container(barnGateway, "Шлюз данных", "Node-RED", "Сбор и передача данных")
+}
+
+System_Boundary(cattleMonitoring, "Контроль скота") {
+    Container(cameras, "Fish-eye камеры")
+    Container(mlAnalytics, "Сервис видеоаналитики", "ML model", "Распознавание и аналитика по видео")
+    Container(smsGateway, "СМС-шлюз", ,"Локальный сервис/устройство для отправки СМС")
+}
+
+System_Boundary(localService, "Система мониторинга") {
+    Container(tsdb, "База временных рядов", "TimescaleDB (reused)", "Данные датчиков")
+    Container(iot_шлюз, "IoT шлюз", "Node-RED (reused)", "Сбор данных")
+
+    Container(api, "API метрик", "ASP.NET Core", "Данные об условиях в хлеве, данные о животных, рестриминг камер и работа с записями")
+    Container(webApp, "Web App", "React", "Веб-фронтэнд для работы с данными")
+    ContainerQueue(messageBus, "Брокер сообщений", "RabbitMQ")
+    ContainerDb(fileStorage, "Файловое хранилище", "HDD")
+}
+
+System(centralHub, "АгроПром Х - Цифровая платформа")
+
+Rel(sensors, barnGateway, "Сбор данных", "LoRaWAN")
+Rel(barnGateway, controllers, "Управление кормушками и поилками", "Modbus TCP")
+Rel(barnGateway, messageBus, "Передача данных", "AMQP")
+
+Rel(cameras, mlAnalytics, "Трансляция видеопотока", "RTSP")
+Rel(mlAnalytics, messageBus, "Передача данных", "AMQP")
+Rel(mlAnalytics, api, "Передача видеопотока", "RTSP")
+Rel(mlAnalytics, smsGateway, "Отправка уведомлений")
+Rel(smsGateway, operator, "Уведомления о происшествиях", "SMS")
+
+Rel(operator, webApp, "Использует")
+Rel(webApp, api, "Отправляет запросы", "HTTP")
+Rel(centralHub, api, "Авторизует", "HTTP")
+Rel(api, tsdb, "Получает данные", "SQL")
+
+Rel(messageBus, iot_шлюз, "Передача данных", "AMQP")
+Rel(iot_шлюз, tsdb, "Сохранение данных", "SQL")
+Rel(iot_шлюз, centralHub, "Передача метрик", "Kafka Protocol")
+
+LAYOUT_WITH_LEGEND()
+@enduml 
