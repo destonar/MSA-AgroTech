@@ -18,7 +18,7 @@ Rel_D(sensors, localService, "Передача данных", "LoRaWan")
 Rel_U(localService, controllers, "Управление кормушками и поилками", "Modbus TCP")
 
 Rel_D(localService, centralHub, "Передача метрик", "Kafka Protocol")
-Rel_U(centralHub, localService, "Синхронизация данных о сотрудниках", "AMQP")
+Rel_U(centralHub, localService, "Аутентификация и авторизация", "HTTP")
 
 Rel_R(operator, localService, "Мониторинг скота")
 Rel_L(localService, operator, "Уведомления о происшествиях", "SMS")
