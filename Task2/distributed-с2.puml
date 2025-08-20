@@ -22,7 +22,6 @@ System_Boundary(localService, "Система мониторинга") {
     Container(api, "API метрик", "ASP.NET Core", "Данные об условиях в хлеве, данные о животных, рестриминг камер и работа с записями")
     Container(webApp, "Web App", "React", "Веб-фронтэнд для работы с данными")
     ContainerQueue(messageBus, "Брокер сообщений", "RabbitMQ")
-    ContainerDb(fileStorage, "Файловое хранилище", "HDD")
 }
 
 System(centralHub, "АгроПром Х - Цифровая платформа")
