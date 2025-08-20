@@ -1,0 +1,70 @@
+@startuml C4 BarnMonitoring
+
+class BarnMonitoringApi{
+  +ICollection<Barn> GetBarns(BarnMonitoringContext context)
+  +Barn GetBarnData(int id, BarnMonitoringContext context)
+  +ICollection<ClimateDataRecord> GetClimateRecords(int barnId, BarnMonitoringContext context)
+  +ICollection<Feeder> GetFeeders(int barnId, BarnMonitoringContext context)
+  +ICollection<FeederDataRecord> GetFeederDataRecords(int feederId, BarnMonitoringContext context)
+  +ICollection<DrinkingBowl> GetDrinkingBowls(int barnId, BarnMonitoringContext context)
+  +ICollection<DrinkingBowlDataRecord> GetDrinkingBowlDataRecords(int bowlId, BarnMonitoringContext context)  
+}
+
+class Barn {
+  +int Id
+  +string Name
+  +string Description
+  +short Temperature
+  +short Humidity
+  +DateTime Updated
+}
+
+class ClimateDataRecord {
+  +int BarnId
+  +DateTime Date
+  +short Temperature
+  +short Humidity
+}
+
+class Feeder {
+  +int Id
+  +string Description
+  +int BarnId
+  +int Capacity
+  +int CurrentAmount
+  +DateTime Updated
+}
+
+class DrinkingBowl {
+  +int Id
+  +string Description
+  +int BarnId
+  +int Capacity
+  +int CurrentAmount
+  +short WaterTDS
+  +byte WaterPh
+  +DateTime Updated
+}
+
+class FeederDataRecord {
+  +int FeederId
+  +int CurrentAmount
+  +DateTime Date
+}
+
+class DrinkingBowlDataRecord {
+  +int FeederId
+  +int CurrentAmount
+  +short WaterTDS
+  +byte WaterPh
+  +DateTime Date
+}
+
+Barn "1" -- "0.." Feeder: has
+Barn "1" -- "0.." DrinkingBowl: has
+Barn "1" -- "0.." ClimateDataRecord: has
+
+Feeder "1" -- "0.." FeederDataRecord: has
+
+DrinkingBowl "1" -- "0.." DrinkingBowlDataRecord: has
+@enduml

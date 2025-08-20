@@ -1,0 +1,29 @@
+@startuml C4 CattleMonitoring
+
+class CattleMonitoringApi{
+  +ICollection<Animal> GetAnimals(CattleMonitoringContext context)
+  +Animal GetAnimalData(int id, CattleMonitoringContext context)
+  +ICollection<AnimalDataRecord> GetAnimalDataRecords(int animalId, CattleMonitoringContext context)
+}
+
+class Animal {
+  +int Id
+  +int BarnId
+  +string Type
+  +string Description
+  +string State 
+  +DateTime LastDetected
+}
+
+class AnimalDataRecord {
+  +int AnimalId
+  +DateTime Date
+  +string State
+}
+
+CattleMonitoringApi -- Animal:uses
+CattleMonitoringApi -- AnimalDataRecord:uses
+
+Animal "1" -- "0.." AnimalDataRecord: has
+
+@enduml
