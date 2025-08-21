@@ -1,0 +1,28 @@
+@startuml C4 Cameras
+
+class CamerasApi{
+  +ICollection<Camera> GetCameras(CamerasContext context)
+  +Stream GetStream(int cameraId, CamerasContext context)
+  +ICollection<VideoRecord> GetVideoRecords(int cameraId, CamerasContext context)
+  +Stream GetVideoRecord(int id, BarnMonitoringContext context)
+}
+
+class Camera {
+  +int Id
+  +string Description
+  +bool IsActive
+}
+
+class VideoRecord {
+  +int id
+  +int CameraId
+  +DateTime DateFrom
+  +DateTime DateTo
+}
+
+CamerasApi -- Camera:uses
+CamerasApi -- VideoRecord:uses
+
+Camera "1" -- "0.." VideoRecord: has
+
+@enduml

@@ -1,0 +1,48 @@
+@startuml C2 Container Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(operator, "Оператор", "Сотрудник на ферме")
+
+System_Ext(cameras, "Fish-eye камеры")
+System_Ext(sensors, "Датчики в хлевах", "Климат, качество воды и т.п.")
+System_Ext(controllers, "Контролеры кормушек и поилок") 
+
+System(centralHub, "АгроПром Х - Цифровая платформа")
+
+System_Boundary(localService, "Система мониторинга скота") {
+    Container(iot_шлюз, "IoT шлюз", "Node-RED (reused)", "Сбор данных")
+    Container(tsdb, "База временных рядов", "TimescaleDB (reused)", "Данные датчиков")
+    
+    Container(mlAnalytics, "Сервис видеоаналитики", "ML model", "Распознавание и сбор данных")
+    Container(smsGateway, "СМС-шлюз", ,"Локальный сервис/устройство для отправки СМС")
+
+    Container(api, "API метрик", "ASP.NET Core", "Данные об условиях в хлеве, данные о животных, рестриминг камер и работа с записями")
+    Container(webApp, "Web App", "React", "Веб-фронтэнд для работы с данными")
+    ContainerDb(fileStorage, "Файловое хранилище", "HDD")
+}
+
+Rel_R(operator, webApp, "Использует")
+
+Rel(webApp, api, "Отправляет запросы", "HTTP")
+Rel(api, tsdb, "Получает данные", "SQL")
+Rel(api, fileStorage, "Получает видео")
+
+Rel(centralHub, api, "Авторизует", "HTTP")
+
+Rel(iot_шлюз, fileStorage, "Сохранение видео")
+Rel(iot_шлюз, api, "Передача видеопотока", "RTSP")
+Rel(iot_шлюз, tsdb, "Сохранение данных", "SQL")
+Rel(mlAnalytics, iot_шлюз, "Ретрансляция видеопотока и данных", "RTSP/HTTP")
+
+Rel_U(mlAnalytics, smsGateway, "Отправка уведомлений")
+
+Rel(cameras, mlAnalytics, "Трансляция видеопотока", "4G")
+Rel(sensors, iot_шлюз, "Сбор данных", "LoRaWAN")
+Rel(iot_шлюз, controllers, "Управление кормушками и поилками", "Modbus TCP")
+
+Rel_L(smsGateway, operator, "Уведомления о происшествиях", "SMS")
+
+Rel(iot_шлюз, centralHub, "Передача метрик", "Kafka Protocol")
+
+LAYOUT_WITH_LEGEND()
+@enduml 

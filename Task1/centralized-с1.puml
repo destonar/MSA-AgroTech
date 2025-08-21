@@ -1,0 +1,28 @@
+@startuml Agrotech Centralized System Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(operator, "Оператор", "Сотрудник на ферме")
+Person(analytic, "Аналитик", "Работа с BI-системой")
+
+System_Ext(cameras, "Fish-eye камеры")
+System_Ext(sensors, "Датчики в хлевах", "Климат, качество воды и т.п.")
+System_Ext(controllers, "Контролеры кормушек и поилок")
+
+
+System(localService, "Система мониторинга", "Система для управления и мониторинга фермой")
+
+System(centralHub, "Центральный хаб", "Аналитика, данные, веб-интерфейс")
+
+Rel_D(cameras, localService, "Передача данных", "4G")
+Rel_D(sensors, localService, "Передача данных", "LoRaWan")
+Rel_U(localService, controllers, "Управление кормушками и поилками", "Modbus TCP")
+
+Rel_D(localService, centralHub, "Передача метрик", "Kafka Protocol")
+Rel_U(centralHub, localService, "Аутентификация и авторизация", "HTTP")
+
+Rel_R(operator, localService, "Мониторинг скота")
+Rel_L(localService, operator, "Уведомления о происшествиях", "SMS")
+Rel_U(analytic, centralHub, "Анализирует данные")
+
+LAYOUT_WITH_LEGEND()
+@enduml

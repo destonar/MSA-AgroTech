@@ -1,0 +1,41 @@
+@startuml C2 Container Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(analytic, "Аналитик", "Работа с BI-системой")
+
+System(localService, "Система мониторинга скота")
+
+System_Boundary(centralHub, "АгроПром Х - Цифровая платформа") {
+    Container(веб_портал, "Веб-портал", "React", "Управление хозяйством")
+    ContainerDb(erp, "ERP система (1С:Агро)", "1С", "Финансы, склад, кадры")
+    
+    Container(kafka, "Брокер сообщений", "Apache Kafka", "Шина данных")
+
+    Container_Boundary(данные, "Хранилища данных") {
+        ContainerDb(data_lake, "Data Lake", "MinIO", "Сырые данные (S3-совместимое)")
+        ContainerDb(dwh, "Data Warehouse", "ClickHouse", "Структурированные данные")
+    }
+    
+    Container(identity, "Сервис идентификации", "Keycloak", "Аутентифицирует и авторизует пользователей")
+
+    Container(bi, "BI система", "Power BI", "Отчеты и визуализация")
+    Container(аналитика, "Аналитический модуль", "Python+Spark", "Анализ эффективности")
+}
+Rel(analytic, bi, "Анализирует")
+
+Rel(localService, kafka, "Передача метрик", "Kafka Protocol")
+Rel(identity, localService, "Аутентификация и авторизация", "HTTP")
+
+Rel(kafka, data_lake, "Сырые данные", "Kafka Connect+S3")
+Rel(kafka, dwh, "Трансформированные данные", "ETL+Airflow")
+
+Rel(data_lake, аналитика, "Доступ к сырым данным", "Spark")
+Rel(dwh, аналитика, "Доступ к структурированным данным", "SQL")
+Rel(аналитика, bi, "Передает отчеты", "ODBC")
+Rel(аналитика, веб_портал, "Формирует рекомендации", "WebSocket")
+
+Rel(веб_портал, erp, "Синхронизация данных", "REST API")
+Rel(erp, dwh, "Бизнес-данные", "ETL")
+
+LAYOUT_WITH_LEGEND()
+@enduml 

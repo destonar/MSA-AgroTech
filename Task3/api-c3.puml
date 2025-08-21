@@ -1,0 +1,30 @@
+@startuml C3 API Components
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(api, "API метрик"){
+    Component(barnMonitoringEndpoints, "Контролер мониторинга хлевов", "ASP.NET Core Minimal API", "Данные о хлевах, климат, кормушки и поилки")
+    Component(cattleMonitoringEndpoints, "Контролер мониторинга скота", "ASP.NET Core Minimal API", "Данные о животных")
+    Component(cameraFeedEndpoints, "Видео с камер", "ASP.NET Core Minimal API", "Трансляция с камер и просмотр записей")
+    Component(barnMonitoringRepoInfrastructure, "Инфраструктура мониторинга хлевов", "Entity Framework Core")
+    Component(cattleMonitoringInfrastructure, "Инфраструктура мониторинга скота", "Entity Framework Core")
+    Component(videoInfrastructure, "Инфраструктура для видео с камер", "Entity Framework Core","ORM + конвертация RTSP поток в HLS через .m3u8 файлы и стриминг записей из файловой системы")
+}
+
+Container(tsdb, "База временных рядов", "TimescaleDB (reused)", "Данные датчиков")
+Container(webApp, "Web App", "React", "Веб-фронтэнд для работы с данными")
+
+Rel(webApp, barnMonitoringEndpoints, "Отправляет запросы", "HTTP")
+Rel(webApp, cattleMonitoringEndpoints, "Отправляет запросы", "HTTP")
+Rel(webApp, cameraFeedEndpoints, "Отправляет запросы", "HTTP")
+
+Rel(barnMonitoringEndpoints, barnMonitoringRepoInfrastructure, "Использует для получение данных")
+Rel(cattleMonitoringEndpoints, cattleMonitoringInfrastructure, "Использует для получение данных")
+Rel(cameraFeedEndpoints, videoInfrastructure, "Получает видеопотоки")
+
+Rel(barnMonitoringRepoInfrastructure, tsdb, "Получает данные", "SQL")
+Rel(cattleMonitoringInfrastructure, tsdb, "Получает данные", "SQL")
+Rel(videoInfrastructure, tsdb, "Получает данные", "SQL")
+Rel(streamSource, videoInfrastructure, "Видеопоток", "RTSP")
+
+LAYOUT_WITH_LEGEND()
+@enduml
